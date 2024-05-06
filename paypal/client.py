@@ -23,7 +23,7 @@ class Paypal(object):
         client_id: str,
         client_secret: str
     ):
-        self.__env = env
+        self.__env, self.env = env, env
         self.__base_url = self.sandbox_base_url if self.__env == "sandbox" else self.live_base_url if self.__env == "live" else None
         self.__client_id = client_id
         self.__client_secret = client_secret
@@ -40,7 +40,7 @@ class Paypal(object):
         credentials = "{}:{}".format(self.__client_id, self.__client_secret)
         return base64.b64encode(credentials.encode('utf-8')).decode('utf-8').replace("\n", "")
 
-    def generate_access_token(self, authorization_code=None, refresh_token=None, headers=None) -> str:
+    def generate_access_token_hash(self, authorization_code=None, refresh_token=None, headers=None) -> str:
         """ Generate new token by making a POST request """
         path = "/v1/oauth2/token"
         payload = "grant_type=client_credentials"
@@ -53,7 +53,7 @@ class Paypal(object):
             payload = "grant_type=refresh_token&refresh_token" + refresh_token
 
         else:
-            self.validate_access_token()
+            self.validate_access_token_hash()
             if self.__token is not None:
                 # return cached copy
                 return self.__token
@@ -74,7 +74,7 @@ class Paypal(object):
             self.__token = token
         return token
 
-    def validate_access_token(self) -> bool:
+    def validate_access_token_hash(self) -> bool:
         """ Checks if token duration has expired and if so resets token """
         if self.__token_request_at and self.__token and self.__token.get("expires_in") is not None:
             delta = datetime.datetime.now() - self.__token_request_at
@@ -82,6 +82,10 @@ class Paypal(object):
                 delta.microseconds + (delta.seconds + delta.days * 24 * 3600) * 10 ** 6) / 10 ** 6
             if duration > self.__token.get("expires_in"):
                 self.__token = None
+
+    def get_access_token(self, authorization_code=None, refresh_token=None, headers=None):
+        """ Wraps get_token_hash for getting access token """
+        return self.generate_access_token_hash(authorization_code, refresh_token, headers=headers or {})['access_token']
         
     def request(self, url: str, method: str, body=None, headers=None):
         """ Make HTTP call, formats response and does error handling. Uses self.http_call method. """
@@ -125,10 +129,10 @@ class Paypal(object):
         
     def headers(self, refresh_token=None, headers=None):
         """ Default HTTP headers """
-        token = self.generate_access_token(refresh_token=refresh_token, headers=headers or {})
+        token = self.generate_access_token_hash(refresh_token=refresh_token, headers=headers or {})
 
         return {
-            "Authorization": "Bearer " + token,
+            "Authorization": f"{token['token_type']} {token['access_token']}",
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
