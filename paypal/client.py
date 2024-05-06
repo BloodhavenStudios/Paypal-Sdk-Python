@@ -137,3 +137,22 @@ class Paypal(object):
             "Accept": "application/json"
         }
     
+    def get(self, action, headers=None):
+        """ Make a GET request """
+        return self.request(self.__base_url+action, "GET", headers=headers or {})
+    
+    def post(self, action, params=None, headers=None):
+        """ Make a POST request """
+        return self.request(self.__base_url+action, "POST", body=params or {}, headers=headers or {})
+    
+    def put(self, action, params=None, headers=None):
+        """ Make a PUT request """
+        return self.request(self.__base_url+action, "PUT", body=params or {}, headers=headers or {})
+    
+    def patch(self, action, params=None, headers=None):
+        """ Make a PATCH request """
+        return self.request(self.__base_url+action, "PATCH", body=params or {}, headers=headers or {})
+    
+    def delete(self, action, headers=None):
+        """ Make a DELETE request """
+        return self.request(self.__base_url+action, "DELETE", headers=headers or {})
