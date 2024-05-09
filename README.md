@@ -15,7 +15,7 @@ PayPal SDK depends on the following system libraries:
 ## Installation
 Install using `pip` and `git`:
 ```sh
-pip install git+https://github.com/BloodhavenStudios/Paypal-Sdk-Python/alpha
+pip install git+https://github.com/BloodhavenStudios/Paypal-Sdk-Python/tree/alpha
 ```
 
 ### Creating a Payment, Confirming, Authorizing, and Capturing a order. 
